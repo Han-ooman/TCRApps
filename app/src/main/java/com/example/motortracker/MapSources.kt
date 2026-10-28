@@ -3,6 +3,9 @@ package com.example.motortracker
 import android.content.Context
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.util.concurrent.TimeUnit
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.tilesource.XYTileSource
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
@@ -30,7 +33,15 @@ object MapSources {
     )
 
     val providers = listOf(
-        Provider("carto_dark", "CARTO Dark (tanpa API key)", false) { mv, _ ->
+        Provider("wikimedia", "Wikimedia Map (tanpa API key)", false) { mv, _ ->
+            mv.setTileSource(
+                XYTileSource(
+                    "Wikimedia", 0, 19, 256, ".png",
+                    arrayOf("https://maps.wikimedia.org/osm-intl/")
+                )
+            )
+        },
+        Provider("carto_dark", "CARTO Dark", false) { mv, _ ->
             mv.setTileSource(
                 XYTileSource(
                     "CartoDark", 0, 20, 256, ".png",
@@ -100,8 +111,72 @@ object MapSources {
     }
 
     fun currentProvider(ctx: Context): Provider {
-        val id = PrefsStore.mapProviderId(ctx)
+        // Hasil auto-probe (jika ada) yang dipakai, selidiknya provider tersimpan.
+        val id = autoSelectedId ?: PrefsStore.mapProviderId(ctx)
         return providers.firstOrNull { it.id == id } ?: providers.first()
+    }
+
+    // ================= AUTO PROBE =================
+    // CARTO dsb. kini menuntut API key -> tile 403 "API key required".
+    // Saat app dibuka, kita tes cepat beberapa server peta dan pakai
+    // yang pertama yg sukses 200, tanpa key.
+
+    @Volatile
+    private var autoSelectedId: String? = null
+
+    private val probeClient = OkHttpClient.Builder()
+        .connectTimeout(4, TimeUnit.SECONDS)
+        .readTimeout(6, TimeUnit.SECONDS)
+        .build()
+
+    private val PROBE_URLS = mapOf(
+        "wikimedia" to "https://maps.wikimedia.org/osm-intl/10/815/508.png",
+        "opentopo" to "https://a.tile.opentopomap.org/10/815/508.png",
+        "carto_dark" to "https://a.basemaps.cartocdn.com/dark_all/10/815/508.png",
+        "osm_mapnik" to "https://tile.openstreetmap.org/10/815/508.png"
+    )
+
+    private fun probe(url: String): Boolean = runCatching {
+        val req = Request.Builder()
+            .url(url)
+            .header("User-Agent", "TCRApps-alpha (Android; osmdroid)")
+            .build()
+        probeClient.newCall(req).execute().use { resp ->
+            resp.isSuccessful
+        }
+    }.getOrDefault(false)
+
+    /**
+     * Cari provider peta yang benar-benar bisa diakses di jaringan yang keluar.
+     * Menebak: provider pilihan tersimpan diproses dulu, kalau gagal naikkan yawen lain.
+     * Return id yang cocok, atau null kalau tidak ada (offline/semua diblokir).
+     */
+    fun probeBest(ctx: Context): String? {
+        val stored = PrefsStore.mapProviderId(ctx)
+        val order = mutableListOf<String>()
+        if (stored in PROBE_URLS.keys) order.add(stored)
+        // Prioritas provider tanpa API key
+        order.addAll(listOf("wikimedia", "opentopo", "carto_dark", "osm_mapnik") - stored)
+        for (id in order) {
+            val url = PROBE_URLS[id] ?: continue
+            if (probe(url)) {
+                autoSelectedId = id
+                return id
+            }
+        }
+        // Provider dengan API key (mis. MapTiler) jika user punya key
+        if (stored == "maptiler") {
+            val key = PrefsStore.mapApiKey(ctx)
+            if (key.isNotBlank()) {
+                val url = "https://api.maptiler.com/maps/streets/10/815/508.png?key=$key"
+                if (probe(url)) {
+                    autoSelectedId = stored
+                    return stored
+                }
+            }
+        }
+        autoSelectedId = null
+        return null
     }
 
     fun applyTo(mapView: MapView, ctx: Context) {

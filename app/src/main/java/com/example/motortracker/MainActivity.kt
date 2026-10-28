@@ -68,8 +68,31 @@ class MainActivity : AppCompatActivity() {
         tvDistance = findViewById(R.id.tvDistance)
         btnToggleTracking = findViewById(R.id.btnToggleTracking)
 
-        // Setup Peta — pakai penyimpanan pilihan provider (default: CARTO dark, tanpa API key)
+        // Setup Peta dgn provider yg tersimpan; auto-probe di Thread background
+        // menetapkan provider paling reffup yg bisa diakses (tanpa API key).
         MapSources.applyTo(mapView, this)
+        Thread {
+            val best = MapSources.probeBest(this)
+            runOnUiThread {
+                when (best) {
+                    null -> Toast.makeText(
+                        this, "Server tile peta tidak bisa diakses: cek koneksi/VPN",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    else -> {
+                        if (best != PrefsStore.mapProviderId(this)) {
+                            PrefsStore.setMapConfig(this, best, PrefsStore.mapApiKey(this))
+                        }
+                        MapSources.applyTo(mapView, this)
+                        Toast.makeText(
+                            this,
+                            "Peta aktif: ${MapSources.currentProvider(this).label}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }.start()
         mapView.setMultiTouchControls(true)
         val mapController = mapView.controller
         mapController.setZoom(16.5)

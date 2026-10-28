@@ -101,7 +101,7 @@ object PrefsStore {
     }
 
     // ---- Peta ----
-    fun mapProviderId(ctx: Context): String = prefs(ctx).getString(KEY_MAP_PROVIDER, "carto_dark")!!
+    fun mapProviderId(ctx: Context): String = prefs(ctx).getString(KEY_MAP_PROVIDER, "wikimedia")!!
 
     fun mapApiKey(ctx: Context): String = prefs(ctx).getString(KEY_MAP_API_KEY, "") ?: ""
 
