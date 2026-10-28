@@ -1,0 +1,18 @@
+# Render Blueprint — TCRApps backend API (free tier)
+# Saat user buat Blueprint dari repo ini, Render akan bertanya nilai
+# untuk kredensial sync:false sebelum pertama deploy.
+services:
+  - type: web
+    name: tcrapps-api
+    runtime: docker
+    rootDir: backend
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: API_TOKEN
+        sync: false
+      - key: PORT
+        sync: false
