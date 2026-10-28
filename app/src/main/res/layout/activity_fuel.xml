@@ -1,112 +1,200 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark">
+    android:background="@color/md_sys_color_background"
+    android:fitsSystemWindows="true">
 
-    <TextView
-        android:id="@+id/tvFuelTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Analisa Bensin (Hemat dan Sehat)"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ScrollView
+    <!-- Header -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarFuel"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_margin="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/md_sys_color_surface"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvFuelTitle">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:title="Analisa Bensin"
+        app:titleTextColor="@color/md_sys_color_on_surface"
+        app:navigationIcon="@drawable/ic_arrow_back_24"
+        app:navigationIconTint="@color/md_sys_color_on_surface" />
+
+    <!-- Form input pengisian -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardFuelForm"
+        style="@style/Widget.TCRApps.Card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbarFuel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <androidx.cardview.widget.CardView
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tambah Pengisian"
+                android:textColor="@color/md_sys_color_on_surface"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.TCRApps.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                android:layout_marginTop="12dp"
+                android:hint="Odometer (km)">
 
-                <LinearLayout
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etOdo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
+                    android:inputType="numberDecimal"
+                    android:textColor="@color/md_sys_color_on_surface"
+                    android:textSize="15sp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-                    <EditText
-                        android:id="@+id/etOdo"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Odometer (km)"
-                        android:inputType="numberDecimal"
-                        android:textColor="@android:color/white"
-                        android:textColorHint="@color/text_muted" />
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.TCRApps.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Liter (mis. 2.5)">
 
-                    <EditText
-                        android:id="@+id/etLiters"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Liter (mis. 2.5)"
-                        android:inputType="numberDecimal"
-                        android:textColor="@android:color/white"
-                        android:textColorHint="@color/text_muted" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etLiters"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:textColor="@color/md_sys_color_on_surface"
+                    android:textSize="15sp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-                    <EditText
-                        android:id="@+id/etPrice"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Harga per liter (Rp)"
-                        android:inputType="numberDecimal"
-                        android:textColor="@android:color/white"
-                        android:textColorHint="@color/text_muted" />
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.TCRApps.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Harga per liter (Rp)">
 
-                    <Button
-                        android:id="@+id/btnSaveFuel"
-                        android:layout_width="match_parent"
-                        android:layout_height="44dp"
-                        android:layout_marginTop="8dp"
-                        android:text="Tambah Pengisian"
-                        app:backgroundTint="@color/button_primary" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:textColor="@color/md_sys_color_on_surface"
+                    android:textSize="15sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveFuel"
+                style="@style/Widget.TCRApps.Button.Filled"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="16dp"
+                android:text="Simpan Pengisian"
+                android:textSize="14sp"
+                app:cornerRadius="24dp"
+                app:icon="@drawable/ic_save_24"
+                app:iconGravity="start"
+                app:iconPadding="8dp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Summary card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardFuelSummary"
+        style="@style/Widget.TCRApps.Card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/cardFuelForm"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/tvFuelSummary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:lineSpacingExtra="4dp"
+                android:lineSpacingExtra="6dp"
                 android:text="Belum ada data. Tambahkan pengisian pertama."
-                android:textColor="@color/accent_blue"
+                android:textColor="@color/md_sys_color_on_surface"
                 android:textSize="14sp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Tips card -->
+    <androidx.cardview.widget.CardView
+        style="@style/Widget.TCRApps.Card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:layout_constraintTop_toBottomOf="@id/cardFuelSummary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tips Hemat &amp; Sehat Vario 125 Old"
+                android:textColor="@color/md_sys_color_on_surface"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:lineSpacingExtra="4dp"
-                android:text="Tips hemat Vario 125 Old:\n- Kecepatan paling efisien: 35-45 km/jam (drag udara masih rendah)\n- Hindari gas penuh dan rem mendadak\n- Bensin jangan sampai mengendap lama (lebih dari 2 minggu)\n- Tekanan ban wajar (2.25 kg/cm2): ban kempes = boros 5-10%\n- Log pengisian tiap kali isi: km/L adalah indikator kesehatan mesin"
-                android:textColor="@color/text_muted"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="6dp"
+                android:text="&#8226; Kecepatan paling efisien: 35-45 km/jam (drag udara masih rendah)
+&#8226; Hindari gas penuh &amp; rem mendadak — akselerasi mulus itu hemat
+&#8226; Bensin jangan sampai mengendap lama (>2 minggu), isi di pertengahan tank terbaik
+&#8226; Tekanan ban wajar (+- 2,25 kg/cm2): ban kempes = boros 5-10%
+&#8226; Log pengisian tiap kali isi -> km/L adalah indikator kesehatan mesin"
+                android:textColor="@color/md_sys_color_on_surface_variant"
                 android:textSize="12sp" />
-
-            <LinearLayout
-                android:id="@+id/listFuel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="vertical" />
         </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Riwayat -->
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        app:layout_constraintTop_toBottomOf="@id/cardFuelSummary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/listFuel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="8dp" />
     </ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,11 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.TCRApps" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/button_primary</item>
-        <item name="colorPrimaryDark">@color/background_dark</item>
-        <item name="colorAccent">@color/accent_blue</item>
-        <item name="android:windowBackground">@color/background_dark</item>
-        <item name="android:statusBarColor">@color/background_dark</item>
-        <item name="android:navigationBarColor">@color/background_dark</item>
+    <style name="Theme.TCRApps" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/md_sys_color_primary</item>
+        <item name="colorOnPrimary">@color/md_sys_color_on_primary</item>
+
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/md_sys_color_secondary</item>
+        <item name="colorOnSecondary">@color/md_sys_color_on_secondary</item>
+
+        <!-- Tertiary brand color -->
+        <item name="colorTertiary">@color/md_sys_color_tertiary</item>
+        <item name="colorOnTertiary">@color/md_sys_color_on_tertiary</item>
+
+        <!-- Error -->
+        <item name="colorError">@color/md_sys_color_error</item>
+        <item name="colorOnError">@color/md_sys_color_on_error</item>
+
+        <!-- Background & Surface -->
+        <item name="android:colorBackground">@color/md_sys_color_background</item>
+        <item name="colorSurface">@color/md_sys_color_surface</item>
+        <item name="colorSurfaceVariant">@color/md_sys_color_surface_variant</item>
+        <item name="colorOnBackground">@color/md_sys_color_on_background</item>
+        <item name="colorOnSurface">@color/md_sys_color_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/md_sys_color_on_surface_variant</item>
+
+        <!-- Outline -->
+        <item name="colorOutline">@color/md_sys_color_outline</item>
+        <item name="colorOutlineVariant">@color/md_sys_color_outline_variant</item>
+
+        <!-- Status & Navigation bar -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+
+        <!-- Shape appearance -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.TCRApps.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.TCRApps.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.TCRApps.LargeComponent</item>
+    </style>
+
+    <!-- Custom shape appearances for rounded corners -->
+    <style name="ShapeAppearance.TCRApps.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.TCRApps.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="ShapeAppearance.TCRApps.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+
+    <!-- Card style -->
+    <style name="Widget.TCRApps.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">2dp</item>
+        <item name="cardBackgroundColor">@color/md_sys_color_surface</item>
+        <item name="strokeColor">@color/md_sys_color_outline_variant</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- Filled button style -->
+    <style name="Widget.TCRApps.Button.Filled" parent="Widget.Material3.Button">
+        <item name="cornerRadius">28dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingVertical">14dp</item>
+    </style>
+
+    <!-- Outlined button style -->
+    <style name="Widget.TCRApps.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">28dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="strokeWidth">1.5dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingVertical">12dp</item>
+    </style>
+
+    <!-- Text input style -->
+    <style name="Widget.TCRApps.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxStrokeWidth">1.5dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxBackgroundColor">@color/md_sys_color_surface</item>
+        <item name="hintTextColor">@color/md_sys_color_on_surface_variant</item>
     </style>
 </resources>

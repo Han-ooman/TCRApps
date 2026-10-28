@@ -1,74 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.TCRApps.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
-    android:orientation="vertical"
-    android:background="@color/card_background"
-    android:padding="12dp">
+    android:layout_marginBottom="12dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvName"
-            android:layout_width="0dp"
+        <!-- Nama + Status -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@android:color/white"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/md_sys_color_on_surface"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:layout_marginStart="12dp"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:background="@color/eco_green_light"
+                android:textColor="@color/eco_green"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.03" />
+        </LinearLayout>
+
+        <!-- Progress bar -->
+        <ProgressBar
+            android:id="@+id/pbItem"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:layout_marginTop="10dp"
+            android:progressTint="@color/md_sys_color_primary"
+            android:progressBackgroundTint="@color/md_sys_color_surface_variant" />
+
+        <!-- Info: terakhir ganti & due -->
+        <TextView
+            android:id="@+id/tvLast"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/md_sys_color_on_surface_variant"
+            android:textSize="12sp" />
 
         <TextView
-            android:id="@+id/tvStatus"
+            android:id="@+id/tvInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/md_sys_color_on_surface_variant"
+            android:textSize="12sp" />
+
+        <!-- Catatan -->
+        <TextView
+            android:id="@+id/tvNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/md_sys_color_on_surface_variant"
+            android:textSize="11sp"
+            android:alpha="0.8" />
+
+        <!-- Tombol aksi -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMarkChanged"
+            style="@style/Widget.TCRApps.Button.Outlined"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:layout_height="36dp"
+            android:layout_marginTop="12dp"
+            android:layout_gravity="end"
+            android:text="Tandai Diganti"
+            android:textSize="12sp"
+            app:cornerRadius="18dp"
+            app:strokeColor="@color/md_sys_color_outline"
+            android:paddingHorizontal="16dp" />
     </LinearLayout>
-
-    <ProgressBar
-        android:id="@+id/pbItem"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="6dp"
-        android:layout_marginTop="6dp"
-        android:progressTint="@color/accent_blue" />
-
-    <TextView
-        android:id="@+id/tvLast"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:textColor="@color/text_muted"
-        android:textSize="11sp" />
-
-    <TextView
-        android:id="@+id/tvInterval"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/text_muted"
-        android:textSize="11sp" />
-
-    <TextView
-        android:id="@+id/tvNote"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:alpha="0.85"
-        android:textColor="@color/text_muted"
-        android:textSize="11sp" />
-
-    <Button
-        android:id="@+id/btnMarkChanged"
-        android:layout_width="wrap_content"
-        android:layout_height="36dp"
-        android:layout_marginTop="6dp"
-        android:paddingHorizontal="12dp"
-        android:text="Tandai Sudah Diganti"
-        android:textSize="12sp"
-        app:backgroundTint="@color/button_primary" />
-</LinearLayout>
+</androidx.cardview.widget.CardView>

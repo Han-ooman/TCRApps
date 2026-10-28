@@ -1,11 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Tema biru gelap elegan -->
+    <!-- Material 3 Light Theme Palette -->
+    <color name="md_sys_color_primary">#006E6B</color>
+    <color name="md_sys_color_on_primary">#FFFFFF</color>
+    <color name="md_sys_color_primary_container">#00F5EE</color>
+    <color name="md_sys_color_on_primary_container">#00201F</color>
+
+    <color name="md_sys_color_secondary">#4A6361</color>
+    <color name="md_sys_color_on_secondary">#FFFFFF</color>
+    <color name="md_sys_color_secondary_container">#CCE5E3</color>
+    <color name="md_sys_color_on_secondary_container">#051F1D</color>
+
+    <color name="md_sys_color_tertiary">#625B71</color>
+    <color name="md_sys_color_on_tertiary">#FFFFFF</color>
+    <color name="md_sys_color_tertiary_container">#E8DEF8</color>
+    <color name="md_sys_color_on_tertiary_container">#1E182A</color>
+
+    <color name="md_sys_color_error">#BA1A1A</color>
+    <color name="md_sys_color_on_error">#FFFFFF</color>
+    <color name="md_sys_color_error_container">#FFDAD6</color>
+    <color name="md_sys_color_on_error_container">#410002</color>
+
+    <color name="md_sys_color_background">#FEFBFF</color>
+    <color name="md_sys_color_on_background">#1C1B1F</color>
+
+    <color name="md_sys_color_surface">#FEFBFF</color>
+    <color name="md_sys_color_on_surface">#1C1B1F</color>
+    <color name="md_sys_color_surface_variant">#E0E4E7</color>
+    <color name="md_sys_color_on_surface_variant">#44484E</color>
+
+    <color name="md_sys_color_outline">#74787E</color>
+    <color name="md_sys_color_outline_variant">#C4C7CC</color>
+
+    <color name="md_sys_color_shadow">#000000</color>
+    <color name="md_sys_color_scrim">#000000</color>
+    <color name="md_sys_color_inverse_surface">#313033</color>
+    <color name="md_sys_color_inverse_on_surface">#F4EFF4</color>
+    <color name="md_sys_color_inverse_primary">#7FD9D5</color>
+
+    <!-- Custom semantic colors -->
+    <color name="eco_green">#2E7D32</color>
+    <color name="eco_green_light">#E8F5E9</color>
+    <color name="eco_warning">#F57F17</color>
+    <color name="eco_warning_light">#FFF8E1</color>
+    <color name="eco_danger">#C62828</color>
+    <color name="eco_danger_light">#FFEBEE</color>
+
+    <color name="status_ok">#2E7D32</color>
+    <color name="status_soon">#F57F17</color>
+    <color name="status_overdue">#C62828</color>
+
+    <!-- Legacy compatibility -->
     <color name="background_dark">#0D1B2A</color>
-    <color name="card_background">#1B263B</color>
-    <color name="text_muted">#A0AAB2</color>
-    <color name="button_primary">#415A77</color>
-    <color name="button_danger">#B3261E</color>
-    <color name="accent_blue">#7DF9FF</color>
-    <color name="ic_launcher_background">#0D1B2A</color>
+    <color name="card_background">#FEFBFF</color>
+    <color name="text_muted">#74787E</color>
+    <color name="button_primary">#006E6B</color>
+    <color name="button_danger">#BA1A1A</color>
+    <color name="accent_blue">#006E6B</color>
+    <color name="ic_launcher_background">#006E6B</color>
 </resources>

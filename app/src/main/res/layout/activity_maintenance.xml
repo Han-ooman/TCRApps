@@ -3,60 +3,99 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark">
+    android:background="@color/md_sys_color_background"
+    android:fitsSystemWindows="true">
 
-    <TextView
-        android:id="@+id/tvMaintTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Analisa Servis — Vario 125 Old"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+    <!-- Header -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarMaint"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/md_sys_color_surface"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:title="Analisa Servis"
+        app:titleTextColor="@color/md_sys_color_on_surface"
+        app:navigationIcon="@drawable/ic_arrow_back_24"
+        app:navigationIconTint="@color/md_sys_color_on_surface" />
 
-    <TextView
-        android:id="@+id/tvMaintOdo"
+    <!-- Odometer card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardOdo"
+        style="@style/Widget.TCRApps.Card"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="8dp"
-        android:text="Odometer: 0 km"
-        android:textColor="@color/text_muted"
-        android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="@id/btnEditOdo"
-        app:layout_constraintEnd_toStartOf="@id/btnEditOdo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/btnEditOdo" />
-
-    <Button
-        android:id="@+id/btnEditOdo"
-        android:layout_width="wrap_content"
-        android:layout_height="44dp"
         android:layout_margin="16dp"
-        android:paddingHorizontal="16dp"
-        android:text="Set Odometer"
-        app:backgroundTint="@color/button_primary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvMaintTitle" />
+        app:layout_constraintTop_toBottomOf="@id/toolbarMaint"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Odometer Saat Ini"
+                    android:textColor="@color/md_sys_color_on_surface_variant"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.05" />
+
+                <TextView
+                    android:id="@+id/tvMaintOdo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="0 km"
+                    android:textColor="@color/md_sys_color_on_surface"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditOdo"
+                style="@style/Widget.TCRApps.Button.Filled"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:text="Ubah"
+                android:textSize="13sp"
+                app:cornerRadius="22dp"
+                android:paddingHorizontal="20dp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- List servis -->
     <ScrollView
         android:id="@+id/scrollMaint"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="16dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        app:layout_constraintTop_toBottomOf="@id/cardOdo"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnEditOdo">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:id="@+id/listMaint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:orientation="vertical"
+            android:paddingTop="8dp" />
     </ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
