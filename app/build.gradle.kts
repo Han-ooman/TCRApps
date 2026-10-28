@@ -10,8 +10,8 @@ android {
         applicationId = "com.example.motortracker"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "0.1.0-alpha05"
+        versionCode = 7
+        versionName = "0.1.0-alpha06"
     }
 
     buildTypes {
@@ -40,8 +40,8 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    // OpenStreetMap (osmdroid)
-    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    // OpenFreeMap peta (vektor, tanpa API key) — engine MapLibre
+    implementation("org.maplibre.gl:android-sdk:11.8.0")
 
     // HTTP client untuk upload ke backend API
     implementation("com.squareup.okhttp3:okhttp:4.12.0")

@@ -1,26 +1,33 @@
 package com.example.motortracker
 
 import android.Manifest
-import android.os.Bundle
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import org.osmdroid.config.Configuration
-import org.osmdroid.views.MapView
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.maplibre.android.MapLibre
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.camera.CameraUpdateFactory
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.maps.MapView
+import org.maplibre.android.maps.Style
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var mapView: MapView
+    private lateinit var mapView: MapView // engine OpenFreeMap via MapLibre
     private lateinit var tvSpeed: TextView
     private lateinit var tvDistance: TextView
     private lateinit var btnToggleTracking: Button
@@ -37,11 +44,11 @@ class MainActivity : AppCompatActivity() {
             // Analisa kecepatan hemat (live)
             val tip = findViewById<TextView>(R.id.tvEcoTip)
             tip.text = when {
-                speed <= 0.1f -> "💡 Mode hemat: 35–45 km/h • jaga tempo mulus"
-                speed < 35f -> "🐢 Santai (di bawah zona eco) — tambah dikit gas biar efisien"
-                speed <= 45f -> "✅ ECO MODE — zona paling hemat (35–45 km/h)"
-                speed <= 55f -> "👍 Oke (45–55 km/h) — masih cukup hemat"
-                else -> "⚠️ Kecepatan tinggi (>55 km/h) — bensin boros, turunkan dikit"
+                speed <= 0.1f -> "Mode hemat: 35-45 km/h, jaga tempo mulus"
+                speed < 35f -> "Santai (di bawah zona eco) - tambah dikit gas biar efisien"
+                speed <= 45f -> "ECO MODE - zona paling hemat (35-45 km/h)"
+                speed <= 55f -> "Oke (45-55 km/h) - masih cukup hemat"
+                else -> "Kecepatan tinggi (>55 km/h) - bensin boros, turunkan dikit"
             }
             tip.setTextColor(
                 when {
@@ -55,47 +62,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Konfigurasi osmdroid
-        val osmdroidPrefs = getSharedPreferences("osmdroid", MODE_PRIVATE)
-        Configuration.getInstance().apply {
-            load(applicationContext, osmdroidPrefs)
-            userAgentValue = packageName
-        }
+        MapLibre.getInstance(this)
         setContentView(R.layout.activity_main)
 
         mapView = findViewById(R.id.mapView)
+        mapView.onCreate(savedInstanceState)
+
         tvSpeed = findViewById(R.id.tvSpeed)
         tvDistance = findViewById(R.id.tvDistance)
         btnToggleTracking = findViewById(R.id.btnToggleTracking)
 
-        // Setup Peta dgn provider yg tersimpan; auto-probe di Thread background
-        // menetapkan provider paling reffup yg bisa diakses (tanpa API key).
-        MapSources.applyTo(mapView, this)
-        Thread {
-            val best = MapSources.probeBest(this)
-            runOnUiThread {
-                when (best) {
-                    null -> Toast.makeText(
-                        this, "Server tile peta tidak bisa diakses: cek koneksi/VPN",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    else -> {
-                        if (best != PrefsStore.mapProviderId(this)) {
-                            PrefsStore.setMapConfig(this, best, PrefsStore.mapApiKey(this))
-                        }
-                        MapSources.applyTo(mapView, this)
-                        Toast.makeText(
-                            this,
-                            "Peta aktif: ${MapSources.currentProvider(this).label}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
-        }.start()
-        mapView.setMultiTouchControls(true)
-        val mapController = mapView.controller
-        mapController.setZoom(16.5)
+        loadOpenFreeMapStyle()
 
         checkPermissions()
 
@@ -107,7 +84,73 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Navigasi layar Servis / Bensin / Pilih sumber peta
+        btnButtons()
+    }
+
+    /**
+     * Muat style OpenFreeMap (tanpa API key).
+     * Coba gaya tersimpan dulu, lalu dark/liberty/positron/bright.
+     * Validasi URL style (HTTP 200 + punya "layers") agar tidak style 404.
+     */
+    private fun loadOpenFreeMapStyle(styleOverride: String? = null) {
+        Thread {
+            val client = OkHttpClient.Builder()
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(8, TimeUnit.SECONDS)
+                .build()
+
+            val order = mutableListOf<String>()
+            if (styleOverride != null) order.add(styleOverride) else order.add(MapSources.storedStyle(this))
+            MapSources.styles.forEach { if (it !in order) order.add(it) }
+
+            var chosen: String? = null
+            for (id in order) {
+                val url = MapSources.styleUrl(id)
+                val ok = runCatching {
+                    val req = Request.Builder()
+                        .url(url)
+                        .header("User-Agent", "TCRApps-alpha (Android; maplibre)")
+                        .build()
+                    client.newCall(req).execute().use { resp ->
+                        if (!resp.isSuccessful) return@use false
+                        (resp.body?.string() ?: "").contains("\"layers\"")
+                    }
+                }.getOrDefault(false)
+                if (ok) {
+                    chosen = id
+                    break
+                }
+            }
+
+            runOnUiThread {
+                if (chosen == null) {
+                    Toast.makeText(
+                        this,
+                        "Server OpenFreeMap tidak bisa diakses - cek koneksi",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@runOnUiThread
+                }
+                val url = MapSources.styleUrl(chosen)
+                Toast.makeText(this, "Peta: OpenFreeMap [$chosen]", Toast.LENGTH_SHORT).show()
+                mapView.getMapAsync { map ->
+                    map.setStyle(Style.Builder().fromUri(url)) { /* style loaded callback opsional */ }
+                    // Mulai di tengah Indonesia (zoom overview) — biar peta langsung terisi
+                    map.moveCamera(
+                        CameraUpdateFactory.newCameraPosition(
+                            CameraPosition.Builder()
+                                .target(LatLng(-2.5, 118.0))
+                                .zoom(4.8)
+                                .build()
+                        )
+                    )
+                }
+            }
+        }.start()
+    }
+
+    private fun btnButtons() {
+        // Navigasi layar Servis / Bensin / Ganti gaya peta
         findViewById<Button>(R.id.btnMaintenance).setOnClickListener {
             startActivity(Intent(this, MaintenanceActivity::class.java))
         }
@@ -115,9 +158,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, FuelActivity::class.java))
         }
         findViewById<Button>(R.id.btnMapSource).setOnClickListener {
-            MapSources.showChooser(this) {
-                Toast.makeText(this, "Ganti peta: ${PrefsStore.mapProviderId(this)}", Toast.LENGTH_SHORT).show()
-                MapSources.applyTo(mapView, this)
+            MapSources.showChooser(this) { styleId ->
+                loadOpenFreeMapStyle(styleOverride = styleId)
             }
         }
     }
@@ -177,5 +219,30 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         mapView.onPause()
         unregisterReceiver(locationReceiver)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        mapView.onStart()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        mapView.onStop()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        mapView.onSaveInstanceState(outState)
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        mapView.onLowMemory()
+    }
+
+    override fun onDestroy() {
+        mapView.onDestroy()
+        super.onDestroy()
     }
 }
