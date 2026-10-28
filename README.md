@@ -13,7 +13,8 @@ dengan peta OpenStreetMap (osmdroid) dan layanan foreground untuk tracking GPS.
 - Kotlin, AndroidX, Material Components
 - osmdroid 6.1.18 (peta OpenStreetMap)
 - Gradle Kotlin DSL (AGP 9.1.0)
-- Backend API: Node.js + Express + Postgres (Fly.io Managed Postgres, region `sin`)
+- Backend API: Node.js + Express + Postgres (Neon free tier)
+- Hosting API: Koyeb free tier (scale-to-zero)
 
 ## Struktur Project
 ```
@@ -32,19 +33,18 @@ TCRApps/
 ├── build.gradle.kts
 ├── settings.gradle.kts
 ├── gradle.properties
-└── backend/           ← API bridge Android ↔ Postgres (Fly.io)
+└── backend/           ← API bridge Android ↔ Postgres (Neon)
     ├── server.js      → endpoints /trips, /trips/:id/points, dst.
     ├── schema.sql     → struktur DB (auto-init saat boot)
-    ├── Dockerfile, fly.toml
+    ├── Dockerfile
     └── .env           → kredensial (TIDAK di-commit; ada .env.example)
 ```
 
-## Backend / Database (Fly.io)
-- API: https://tcrapps-api.fly.dev (health check: `GET /health`)
-- DB: Managed Postgres `tcrapps-db`, region `sin` (Singapore)
-- Kredensial disimpan sebagai Fly secrets (`DATABASE_URL`, `API_TOKEN`)
+## Backend / Database (Free Tier)
+- **DB**: Neon Postgres (free 0.5 GB) — connection string di `.env`, tidak di-commit
+- **API**: Koyeb Web Service (free, scale-to-zero, cold start ±5–10 detik)
+- **API_URL**: diisi setelah service Koyeb live, contoh `https://<app>.koyeb.app` (backup: Render Web Service rn free)
 - Setiap request data wajib menyertakan header `x-api-key: <API_TOKEN>`
-- Deploy ulang: `fly deploy -a tcrapps-api` dari folder `backend/`
 
 ## Build
 1. Buka project ini di Android Studio (Ladybug+ / terbaru).
