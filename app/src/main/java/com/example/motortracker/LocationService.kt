@@ -111,6 +111,9 @@ class LocationService : Service(), LocationListener {
             setPackage(packageName)
             putExtra("speed", currentSpeed)
             putExtra("distance", currentDistance)
+            putExtra("lat", location.latitude)
+            putExtra("lon", location.longitude)
+            putExtra("bearing", if (location.hasBearing()) location.bearing else 0f)
         }
         sendBroadcast(intent)
 

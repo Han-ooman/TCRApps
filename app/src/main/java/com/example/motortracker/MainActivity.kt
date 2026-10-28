@@ -1,11 +1,13 @@
 package com.example.motortracker
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
@@ -14,14 +16,29 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import org.maplibre.geojson.Feature
+import org.maplibre.geojson.FeatureCollection
+import org.maplibre.geojson.LineString
+import org.maplibre.geojson.Point
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONArray
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.location.LocationComponent
+import org.maplibre.android.location.LocationComponentActivationOptions
+import org.maplibre.android.location.engine.LocationEngineDefault
+import org.maplibre.android.location.engine.LocationEngineRequest
+import org.maplibre.android.location.modes.CameraMode
+import org.maplibre.android.style.layers.CircleLayer
+import org.maplibre.android.style.layers.LineLayer
+import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
+import org.maplibre.android.style.layers.PropertyFactory
+import org.maplibre.android.style.sources.GeoJsonSource
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -33,10 +50,29 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnToggleTracking: Button
     private var isTracking = false
 
+    // ---- Peta live tracking state ----
+    private var mapRef: MapLibreMap? = null
+    private var locationComponent: LocationComponent? = null
+    private val trackPoints = mutableListOf<LatLng>()     // jejak GPS live
+    private var firstFixDone = false
+    private var destLon = 0.0
+    private var destLat = 0.0
+    private var hasDestination = false
+    private var lastRouteMs = 0L
+
+    private val http = OkHttpClient.Builder()
+        .connectTimeout(6, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.SECONDS)
+        .build()
+
     private val locationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val speed = intent?.getFloatExtra("speed", 0f) ?: 0f
-            val distance = intent?.getFloatExtra("distance", 0f) ?: 0f
+            intent ?: return
+            val speed = intent.getFloatExtra("speed", 0f)
+            val distance = intent.getFloatExtra("distance", 0f)
+            val lat = intent.getDoubleExtra("lat", 0.0)
+            val lon = intent.getDoubleExtra("lon", 0.0)
+            val bearing = intent.getFloatExtra("bearing", 0f)
 
             tvSpeed.text = String.format(Locale.getDefault(), "%.1f", speed)
             tvDistance.text = String.format(Locale.getDefault(), "%.2f", distance)
@@ -57,6 +93,11 @@ class MainActivity : AppCompatActivity() {
                     else -> 0xFFF2C94C.toInt()
                 }
             )
+
+            // Update peta live
+            if (lat != 0.0 && lon != 0.0) {
+                handleGpsFix(lat, lon, bearing, isTracking)
+            }
         }
     }
 
@@ -94,11 +135,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun loadOpenFreeMapStyle(styleOverride: String? = null) {
         Thread {
-            val client = OkHttpClient.Builder()
-                .connectTimeout(5, TimeUnit.SECONDS)
-                .readTimeout(8, TimeUnit.SECONDS)
-                .build()
-
             val order = mutableListOf<String>()
             if (styleOverride != null) order.add(styleOverride) else order.add(MapSources.storedStyle(this))
             MapSources.styles.forEach { if (it !in order) order.add(it) }
@@ -111,7 +147,7 @@ class MainActivity : AppCompatActivity() {
                         .url(url)
                         .header("User-Agent", "TCRApps-alpha (Android; maplibre)")
                         .build()
-                    client.newCall(req).execute().use { resp ->
+                    http.newCall(req).execute().use { resp ->
                         if (!resp.isSuccessful) return@use false
                         (resp.body?.string() ?: "").contains("\"layers\"")
                     }
@@ -134,8 +170,8 @@ class MainActivity : AppCompatActivity() {
                 val url = MapSources.styleUrl(chosen)
                 Toast.makeText(this, "Peta: OpenFreeMap [$chosen]", Toast.LENGTH_SHORT).show()
                 mapView.getMapAsync { map ->
-                    map.setStyle(Style.Builder().fromUri(url)) { /* style loaded callback opsional */ }
-                    // Mulai di tengah Indonesia (zoom overview) — biar peta langsung terisi
+                    mapRef = map
+                    // Mulai di tengah Indonesia (zoom overview) - biar peta langsung terisi
                     map.moveCamera(
                         CameraUpdateFactory.newCameraPosition(
                             CameraPosition.Builder()
@@ -144,9 +180,214 @@ class MainActivity : AppCompatActivity() {
                                 .build()
                         )
                     )
+                    // Long-press peta = set tujuan
+                    map.addOnMapLongClickListener { point ->
+                        setDestination(point)
+                        true
+                    }
+                    map.setStyle(Style.Builder().fromUri(url)) { style ->
+                        setupStyleLayers(map, style)
+                        activateLocationPuck(style)
+                    }
                 }
             }
         }.start()
+    }
+
+    /** Layer garis rute live + rute navigasi + pin tujuan. */
+    private fun setupStyleLayers(map: MapLibreMap, style: Style) {
+        // Jejak GPS (garis cyan muda)
+        style.addSource(GeoJsonSource("tcr-track-src"))
+        style.addLayer(
+            LineLayer("tcr-track", "tcr-track-src").withProperties(
+                PropertyFactory.lineColor(0xFF7DF9FF.toInt()),
+                PropertyFactory.lineWidth(4f),
+                PropertyFactory.lineOpacity(0.9f)
+            )
+        )
+
+        // Rute ke tujuan (garis kuning)
+        style.addSource(GeoJsonSource("tcr-route-src"))
+        style.addLayer(
+            LineLayer("tcr-route", "tcr-route-src").withProperties(
+                PropertyFactory.lineColor(0xFFFFB703.toInt()),
+                PropertyFactory.lineWidth(5f)
+            )
+        )
+
+        // Pin tujuan (bulat merah)
+        style.addSource(GeoJsonSource("tcr-dest-src"))
+        style.addLayer(
+            CircleLayer("tcr-dest", "tcr-dest-src").withProperties(
+                PropertyFactory.circleColor(0xFFEB5757.toInt()),
+                PropertyFactory.circleRadius(8f),
+                PropertyFactory.circleStrokeWidth(2f),
+                PropertyFactory.circleStrokeColor(0xFFFFFFFF.toInt())
+            )
+        )
+    }
+
+    /** Puck lokasi biru + kamera ikut posisi. */
+    @SuppressLint("MissingPermission")
+    private fun activateLocationPuck(style: Style) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) return
+        try {
+            val map = mapRef ?: return
+            val engine = LocationEngineDefault.getDefaultLocationEngine(this)
+            val request = LocationEngineRequest.Builder(1000L)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .build()
+            val lc = map.locationComponent
+            lc.activateLocationComponent(
+                LocationComponentActivationOptions.Builder(this, style)
+                    .locationEngine(engine)
+                    .locationEngineRequest(request)
+                    .useDefaultLocationEngine(false)
+                    .build()
+            )
+            lc.isLocationComponentEnabled = true
+            locationComponent = lc
+        } catch (e: Exception) {
+            Toast.makeText(this, "Puck lokasi gagal: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** Setiap fix GPS dari service: update puck, garis jejak, kamera, rute. */
+    @SuppressLint("MissingPermission")
+    private fun handleGpsFix(lat: Double, lon: Double, bearing: Float, trackingActive: Boolean) {
+        val loc = Location("tcr-broadcast").apply {
+            latitude = lat
+            longitude = lon
+            this.bearing = bearing
+        }
+
+        // Fix pertama: zoom ke posisi + kamera follow
+        if (!firstFixDone) {
+            firstFixDone = true
+            locationComponent?.setCameraMode(CameraMode.TRACKING)
+            mapRef?.moveCamera(
+                CameraUpdateFactory.newCameraPosition(
+                    CameraPosition.Builder()
+                        .target(LatLng(lat, lon))
+                        .zoom(16.0)
+                        .tilt(0.0)
+                        .build()
+                )
+            )
+        }
+        locationComponent?.forceLocationUpdate(loc)
+
+        if (trackingActive) {
+            trackPoints.add(LatLng(lat, lon))
+            updateTrackLine()
+
+            // Rute ke tujuan: refresh tiap >30 detik saat tracking
+            if (hasDestination && System.currentTimeMillis() - lastRouteMs > 30_000) {
+                lastRouteMs = System.currentTimeMillis()
+                requestRoute(lat, lon, showToast = false)
+            }
+        }
+    }
+
+    /** Long-press peta = set tujuan + hitung rute. */
+    private fun setDestination(point: LatLng) {
+        destLat = point.latitude
+        destLon = point.longitude
+        hasDestination = true
+        lastRouteMs = 0L
+
+        styleRef()?.addGeoJson("tcr-dest-src", Feature.fromGeometry(Point.fromLngLat(destLon, destLat)))
+
+        Toast.makeText(this, "Tujuan dipilih - mencari rute...", Toast.LENGTH_SHORT).show()
+
+        // Origin: posisi terakhir (bila ada), else pusat layar
+        val origin = trackPoints.lastOrNull()
+            ?: mapRef?.cameraPosition?.target
+        if (origin != null) {
+            requestRoute(origin.latitude, origin.longitude, showToast = true)
+        }
+    }
+
+    /** Panggil OSRM (gratis, tanpa key). Garis kuning + info km/menit. */
+    private fun requestRoute(origLat: Double, origLon: Double, showToast: Boolean) {
+        Thread {
+            val url = "https://router.project-osrm.org/route/v1/driving/" +
+                "%.6f,%.6f;%.6f,%.6f?overview=full&geometries=geojson"
+                    .format(origLon, origLat, destLon, destLat)
+            try {
+                val req = Request.Builder()
+                    .url(url)
+                    .header("User-Agent", "TCRApps-alpha (Android; osrm)")
+                    .build()
+                http.newCall(req).execute().use { resp ->
+                    if (!resp.isSuccessful) {
+                        runOnUiThread {
+                            Toast.makeText(this, "Rute gagal: server OSRM bermasalah", Toast.LENGTH_SHORT).show()
+                        }
+                        return@use
+                    }
+                    val obj = org.json.JSONObject(resp.body?.string() ?: "")
+                    val code = obj.optString("code")
+                    if (code != "Ok") {
+                        runOnUiThread {
+                            Toast.makeText(this, "Rute tidak ditemukan (code=$code)", Toast.LENGTH_SHORT).show()
+                        }
+                        return@use
+                    }
+                    val route = obj.getJSONArray("routes").getJSONObject(0)
+                    val distM = route.getDouble("distance")
+                    val durS = route.getDouble("duration")
+                    val coords = route.getJSONObject("geometry").getJSONArray("coordinates")
+                    val pts = mutableListOf<Point>()
+                    for (i in 0 until coords.length()) {
+                        val c = coords.getJSONArray(i)
+                        pts.add(Point.fromLngLat(c.getDouble(0), c.getDouble(1)))
+                    }
+                    runOnUiThread {
+                        val line = Feature.fromGeometry(LineString.fromLngLats(pts))
+                        styleRef()?.addGeoJson("tcr-route-src", line)
+                        if (showToast) {
+                            val km = distM / 1000.0
+                            val min = durS / 60.0
+                            Toast.makeText(
+                                this,
+                                String.format(Locale.US, "Rute: %.1f km - estimasi %.0f menit", km, min),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "Rute gagal: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
+
+    /** Helper: update source geojson di style aktif (aman walau layer belum ada). */
+    private fun styleRef(): MapLibreMap? = mapRef
+
+    private fun MapLibreMap.addGeoJson(sourceId: String, feature: Feature) {
+        getStyle()?.getSourceAs<GeoJsonSource>(sourceId)?.setGeoJson(feature)
+    }
+
+    private fun updateTrackLine() {
+        if (trackPoints.isEmpty()) return
+        val features = FeatureCollection.fromFeatures(
+            listOf(Feature.fromGeometry(LineString.fromLngLats(trackPoints.map {
+                Point.fromLngLat(it.longitude, it.latitude)
+            })))
+        )
+        mapRef?.getStyle()?.getSourceAs<GeoJsonSource>("tcr-track-src")?.setGeoJson(features)
+    }
+
+    private fun clearTrack() {
+        trackPoints.clear()
+        updateTrackLine()
+        firstFixDone = false
     }
 
     private fun btnButtons() {
@@ -172,6 +413,8 @@ class MainActivity : AppCompatActivity() {
             startService(serviceIntent)
         }
         isTracking = true
+        lastRouteMs = 0L
+        clearTrack()
         btnToggleTracking.text = getString(R.string.btn_stop_tracking)
         btnToggleTracking.setBackgroundColor(ContextCompat.getColor(this, R.color.button_danger))
         Toast.makeText(this, getString(R.string.toast_tracking_started), Toast.LENGTH_SHORT).show()
