@@ -13,8 +13,8 @@ dengan peta OpenStreetMap (osmdroid) dan layanan foreground untuk tracking GPS.
 - Kotlin, AndroidX, Material Components
 - osmdroid 6.1.18 (peta OpenStreetMap)
 - Gradle Kotlin DSL (AGP 9.1.0)
-- Backend API: Node.js + Express + Postgres (Neon free tier)
-- Hosting API: Koyeb free tier (scale-to-zero)
+- Backend API: Node.js + Express (Vercel serverless)
+- Database: Postgres Neon (free tier)
 
 ## Struktur Project
 ```
@@ -40,11 +40,22 @@ TCRApps/
     └── .env           → kredensial (TIDAK di-commit; ada .env.example)
 ```
 
-## Backend / Database (Free Tier)
-- **DB**: Neon Postgres (free 0.5 GB) — connection string di `.env`, tidak di-commit
-- **API**: Koyeb Web Service (free, scale-to-zero, cold start ±5–10 detik)
-- **API_URL**: diisi setelah service Koyeb live, contoh `https://<app>.koyeb.app` (backup: Render Web Service rn free)
+## Backend / Database (Free Tier) — FINAL
+- **API (production)**: https://tcrapps-api-shankara-dev.vercel.app (Vercel serverless, health check: `GET /health`)
+- **DB**: Neon Postgres — project `tcrapps` (free tier, ap-southeast-1)
+- Kredensial disimpan sebagai Vercel env vars (production) + copy lokal di `backend/.env`
 - Setiap request data wajib menyertakan header `x-api-key: <API_TOKEN>`
+- Deploy ulang: `vercel deploy --prod` dari folder `backend/` (atau push ke GitHub jika git integration aktif)
+
+### Endpoint
+```
+GET  /health                  → {"ok":true,"db":"ok"}
+POST /trips                   → bikin trip baru           {deviceId}
+POST /trips/:id/points        → kirim titik GPS (objek/array)
+POST /trips/:id/finish        → tutup trip + simpan jarak {distanceMeters}
+GET  /trips                   → daftar 50 trip terakhir
+GET  /trips/:id               → detail trip + seluruh titik
+```
 
 ## Build
 1. Buka project ini di Android Studio (Ladybug+ / terbaru).

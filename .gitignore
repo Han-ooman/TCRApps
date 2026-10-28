@@ -17,6 +17,8 @@ captures/
 # Backend (Node)
 node_modules/
 backend/.env
+backend/.env.local
+.vercel
 
 # OS
 .DS_Store
