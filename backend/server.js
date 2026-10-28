@@ -151,6 +151,12 @@ app.get("/trips", auth, requireDb, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`TCRApps API listening on :${PORT}`);
-});
+// Serverless-friendly: saat jalan di Vercel, app diekspor sebagai handler
+// (Vercel memanajemen listen), jadi hanya listen di luar Vercel (local/Docker).
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`TCRApps API listening on :${PORT}`);
+  });
+}
+
+module.exports = app;
