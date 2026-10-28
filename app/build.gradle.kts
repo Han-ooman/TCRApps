@@ -10,8 +10,8 @@ android {
         applicationId = "com.example.motortracker"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.1.0-alpha02"
+        versionCode = 4
+        versionName = "0.1.0-alpha03"
     }
 
     buildTypes {

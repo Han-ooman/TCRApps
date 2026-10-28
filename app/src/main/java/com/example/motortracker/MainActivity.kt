@@ -15,7 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.tileprovider.tilesource.XYTileSource
 import org.osmdroid.views.MapView
 import java.util.Locale
 
@@ -52,8 +52,20 @@ class MainActivity : AppCompatActivity() {
         tvDistance = findViewById(R.id.tvDistance)
         btnToggleTracking = findViewById(R.id.btnToggleTracking)
 
-        // Setup Map OpenStreetMap
-        mapView.setTileSource(TileSourceFactory.MAPNIK)
+        // Setup Peta — CARTO dark basemap (CDN publik, tak membutuhkan API key, jarang diblokir).
+        // Atribusi wajib: © OpenStreetMap contributors © CARTO (lihat layout bawah map).
+        mapView.setTileSource(
+            XYTileSource(
+                "CartoDark",
+                0, 20, 256, ".png",
+                arrayOf(
+                    "https://a.basemaps.cartocdn.com/dark_all/",
+                    "https://b.basemaps.cartocdn.com/dark_all/",
+                    "https://c.basemaps.cartocdn.com/dark_all/",
+                    "https://d.basemaps.cartocdn.com/dark_all/"
+                )
+            )
+        )
         mapView.setMultiTouchControls(true)
         val mapController = mapView.controller
         mapController.setZoom(16.5)

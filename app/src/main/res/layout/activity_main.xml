@@ -30,6 +30,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Atribusi tile provider (wajib) -->
+    <TextView
+        android:id="@+id/tvAttribution"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="© OpenStreetMap contributors © CARTO"
+        android:textColor="@color/text_muted"
+        android:textSize="10sp"
+        android:alpha="0.8"
+        app:layout_constraintBottom_toBottomOf="@id/mapView"
+        app:layout_constraintEnd_toEndOf="@id/mapView"
+        app:layout_constraintStart_toStartOf="@id/mapView" />
+
     <!-- Dashboard Statistik Card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardStats"
