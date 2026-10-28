@@ -1,13 +1,13 @@
 package com.example.motortracker
 
 import android.Manifest
+import android.os.Bundle
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.XYTileSource
 import org.osmdroid.views.MapView
 import java.util.Locale
 
@@ -34,6 +33,23 @@ class MainActivity : AppCompatActivity() {
 
             tvSpeed.text = String.format(Locale.getDefault(), "%.1f", speed)
             tvDistance.text = String.format(Locale.getDefault(), "%.2f", distance)
+
+            // Analisa kecepatan hemat (live)
+            val tip = findViewById<TextView>(R.id.tvEcoTip)
+            tip.text = when {
+                speed <= 0.1f -> "💡 Mode hemat: 35–45 km/h • jaga tempo mulus"
+                speed < 35f -> "🐢 Santai (di bawah zona eco) — tambah dikit gas biar efisien"
+                speed <= 45f -> "✅ ECO MODE — zona paling hemat (35–45 km/h)"
+                speed <= 55f -> "👍 Oke (45–55 km/h) — masih cukup hemat"
+                else -> "⚠️ Kecepatan tinggi (>55 km/h) — bensin boros, turunkan dikit"
+            }
+            tip.setTextColor(
+                when {
+                    speed in 35f..45f -> 0xFF9ADB97.toInt()
+                    speed > 55f -> 0xFFEB5757.toInt()
+                    else -> 0xFFF2C94C.toInt()
+                }
+            )
         }
     }
 
@@ -52,20 +68,8 @@ class MainActivity : AppCompatActivity() {
         tvDistance = findViewById(R.id.tvDistance)
         btnToggleTracking = findViewById(R.id.btnToggleTracking)
 
-        // Setup Peta — CARTO dark basemap (CDN publik, tak membutuhkan API key, jarang diblokir).
-        // Atribusi wajib: © OpenStreetMap contributors © CARTO (lihat layout bawah map).
-        mapView.setTileSource(
-            XYTileSource(
-                "CartoDark",
-                0, 20, 256, ".png",
-                arrayOf(
-                    "https://a.basemaps.cartocdn.com/dark_all/",
-                    "https://b.basemaps.cartocdn.com/dark_all/",
-                    "https://c.basemaps.cartocdn.com/dark_all/",
-                    "https://d.basemaps.cartocdn.com/dark_all/"
-                )
-            )
-        )
+        // Setup Peta — pakai penyimpanan pilihan provider (default: CARTO dark, tanpa API key)
+        MapSources.applyTo(mapView, this)
         mapView.setMultiTouchControls(true)
         val mapController = mapView.controller
         mapController.setZoom(16.5)
@@ -77,6 +81,20 @@ class MainActivity : AppCompatActivity() {
                 startTrackingService()
             } else {
                 stopTrackingService()
+            }
+        }
+
+        // Navigasi layar Servis / Bensin / Pilih sumber peta
+        findViewById<Button>(R.id.btnMaintenance).setOnClickListener {
+            startActivity(Intent(this, MaintenanceActivity::class.java))
+        }
+        findViewById<Button>(R.id.btnFuel).setOnClickListener {
+            startActivity(Intent(this, FuelActivity::class.java))
+        }
+        findViewById<Button>(R.id.btnMapSource).setOnClickListener {
+            MapSources.showChooser(this) {
+                Toast.makeText(this, "Ganti peta: ${PrefsStore.mapProviderId(this)}", Toast.LENGTH_SHORT).show()
+                MapSources.applyTo(mapView, this)
             }
         }
     }

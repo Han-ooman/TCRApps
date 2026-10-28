@@ -53,7 +53,7 @@
         app:cardBackgroundColor="#1B263B"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        app:layout_constraintBottom_toTopOf="@id/btnToggleTracking"
+        app:layout_constraintBottom_toTopOf="@id/tvEcoTip"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -131,6 +131,63 @@
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <!-- Baris menu Servis & Bensin & Maps -->
+    <LinearLayout
+        android:id="@+id/btnRow"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:weightSum="3"
+        app:layout_constraintBottom_toTopOf="@id/btnToggleTracking"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/btnMaintenance"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:text="🔧 Servis"
+            android:textSize="13sp"
+            app:backgroundTint="@color/card_background" />
+
+        <Button
+            android:id="@+id/btnFuel"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:text="⛽ Bensin"
+            android:textSize="13sp"
+            app:backgroundTint="@color/card_background" />
+
+        <Button
+            android:id="@+id/btnMapSource"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="🗺 Maps"
+            android:textSize="13sp"
+            app:backgroundTint="@color/card_background" />
+    </LinearLayout>
+
+    <!-- Tip eco speed live -->
+    <TextView
+        android:id="@+id/tvEcoTip"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:gravity="center"
+        android:text="💡 Mode hemat: 35–45 km/h • jaga tempo mulus"
+        android:textColor="@color/accent_blue"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@id/btnRow"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Tombol Start/Stop Tracking -->
     <Button
