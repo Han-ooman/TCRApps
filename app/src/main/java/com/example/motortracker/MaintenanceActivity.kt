@@ -25,6 +25,10 @@ class MaintenanceActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maintenance)
 
+        // Setup toolbar back button
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbarMaint)
+        toolbar.setNavigationOnClickListener { finish() }
+
         listContainer = findViewById(R.id.listMaint)
         tvOdo = findViewById(R.id.tvMaintOdo)
 

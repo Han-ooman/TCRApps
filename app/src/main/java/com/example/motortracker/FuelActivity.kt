@@ -28,6 +28,10 @@ class FuelActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fuel)
 
+        // Setup toolbar back button
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbarFuel)
+        toolbar.setNavigationOnClickListener { finish() }
+
         listContainer = findViewById(R.id.listFuel)
         tvSummary = findViewById(R.id.tvFuelSummary)
         etOdo = findViewById(R.id.etOdo)

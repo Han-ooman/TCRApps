@@ -313,55 +313,84 @@ class MainActivity : AppCompatActivity() {
     /** Panggil OSRM (gratis, tanpa key). Garis kuning + info km/menit. */
     private fun requestRoute(origLat: Double, origLon: Double, showToast: Boolean) {
         Thread {
-            val url = "https://router.project-osrm.org/route/v1/driving/" +
-                "%.6f,%.6f;%.6f,%.6f?overview=full&geometries=geojson"
-                    .format(origLon, origLat, destLon, destLat)
-            try {
-                val req = Request.Builder()
-                    .url(url)
-                    .header("User-Agent", "TCRApps-alpha (Android; osrm)")
-                    .build()
-                http.newCall(req).execute().use { resp ->
-                    if (!resp.isSuccessful) {
+            // OSRM public endpoints (fallback chain)
+            val endpoints = listOf(
+                "https://router.project-osrm.org/route/v1/driving/",
+                "https://routing.openstreetmap.de/routed-car/route/v1/driving/"
+            )
+
+            var success = false
+            var lastError = ""
+
+            for (baseUrl in endpoints) {
+                val url = baseUrl +
+                    "%.6f,%.6f;%.6f,%.6f?overview=full&geometries=geojson&steps=false"
+                        .format(origLon, origLat, destLon, destLat)
+
+                try {
+                    val req = Request.Builder()
+                        .url(url)
+                        .header("User-Agent", "TCRApps-alpha (Android; osrm)")
+                        .build()
+
+                    http.newCall(req).execute().use { resp ->
+                        if (!resp.isSuccessful) {
+                            lastError = "HTTP ${resp.code}"
+                            return@use
+                        }
+                        val bodyStr = resp.body?.string() ?: ""
+                        val obj = org.json.JSONObject(bodyStr)
+                        val code = obj.optString("code")
+                        if (code != "Ok") {
+                            val msg = obj.optString("message", "Unknown")
+                            lastError = "OSRM code=$code: $msg"
+                            return@use
+                        }
+
+                        val routes = obj.getJSONArray("routes")
+                        if (routes.length() == 0) {
+                            lastError = "Tidak ada rute tersedia"
+                            return@use
+                        }
+
+                        val route = routes.getJSONObject(0)
+                        val distM = route.getDouble("distance")
+                        val durS = route.getDouble("duration")
+                        val coords = route.getJSONObject("geometry").getJSONArray("coordinates")
+                        val pts = mutableListOf<Point>()
+                        for (i in 0 until coords.length()) {
+                            val c = coords.getJSONArray(i)
+                            pts.add(Point.fromLngLat(c.getDouble(0), c.getDouble(1)))
+                        }
+
                         runOnUiThread {
-                            Toast.makeText(this, "Rute gagal: server OSRM bermasalah", Toast.LENGTH_SHORT).show()
+                            val line = Feature.fromGeometry(LineString.fromLngLats(pts))
+                            styleRef()?.addGeoJson("tcr-route-src", line)
+                            if (showToast) {
+                                val km = distM / 1000.0
+                                val min = durS / 60.0
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    String.format(Locale.US, "Rute: %.1f km - estimasi %.0f menit", km, min),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
                         }
-                        return@use
+                        success = true
                     }
-                    val obj = org.json.JSONObject(resp.body?.string() ?: "")
-                    val code = obj.optString("code")
-                    if (code != "Ok") {
-                        runOnUiThread {
-                            Toast.makeText(this, "Rute tidak ditemukan (code=$code)", Toast.LENGTH_SHORT).show()
-                        }
-                        return@use
-                    }
-                    val route = obj.getJSONArray("routes").getJSONObject(0)
-                    val distM = route.getDouble("distance")
-                    val durS = route.getDouble("duration")
-                    val coords = route.getJSONObject("geometry").getJSONArray("coordinates")
-                    val pts = mutableListOf<Point>()
-                    for (i in 0 until coords.length()) {
-                        val c = coords.getJSONArray(i)
-                        pts.add(Point.fromLngLat(c.getDouble(0), c.getDouble(1)))
-                    }
-                    runOnUiThread {
-                        val line = Feature.fromGeometry(LineString.fromLngLats(pts))
-                        styleRef()?.addGeoJson("tcr-route-src", line)
-                        if (showToast) {
-                            val km = distM / 1000.0
-                            val min = durS / 60.0
-                            Toast.makeText(
-                                this,
-                                String.format(Locale.US, "Rute: %.1f km - estimasi %.0f menit", km, min),
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
+                    if (success) break
+                } catch (e: Exception) {
+                    lastError = e.message ?: "Unknown error"
                 }
-            } catch (e: Exception) {
+            }
+
+            if (!success) {
                 runOnUiThread {
-                    Toast.makeText(this, "Rute gagal: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Rute gagal: $lastError (cek koneksi internet)",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }.start()
