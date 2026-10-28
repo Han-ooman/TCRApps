@@ -13,6 +13,7 @@ dengan peta OpenStreetMap (osmdroid) dan layanan foreground untuk tracking GPS.
 - Kotlin, AndroidX, Material Components
 - osmdroid 6.1.18 (peta OpenStreetMap)
 - Gradle Kotlin DSL (AGP 9.1.0)
+- Backend API: Node.js + Express + Postgres (Fly.io Managed Postgres, region `sin`)
 
 ## Struktur Project
 ```
@@ -30,8 +31,20 @@ TCRApps/
 │   └── build.gradle.kts
 ├── build.gradle.kts
 ├── settings.gradle.kts
-└── gradle.properties
+├── gradle.properties
+└── backend/           ← API bridge Android ↔ Postgres (Fly.io)
+    ├── server.js      → endpoints /trips, /trips/:id/points, dst.
+    ├── schema.sql     → struktur DB (auto-init saat boot)
+    ├── Dockerfile, fly.toml
+    └── .env           → kredensial (TIDAK di-commit; ada .env.example)
 ```
+
+## Backend / Database (Fly.io)
+- API: https://tcrapps-api.fly.dev (health check: `GET /health`)
+- DB: Managed Postgres `tcrapps-db`, region `sin` (Singapore)
+- Kredensial disimpan sebagai Fly secrets (`DATABASE_URL`, `API_TOKEN`)
+- Setiap request data wajib menyertakan header `x-api-key: <API_TOKEN>`
+- Deploy ulang: `fly deploy -a tcrapps-api` dari folder `backend/`
 
 ## Build
 1. Buka project ini di Android Studio (Ladybug+ / terbaru).
