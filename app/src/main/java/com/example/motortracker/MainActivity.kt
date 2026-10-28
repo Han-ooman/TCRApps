@@ -40,7 +40,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Konfigurasi osmdroid
-        Configuration.getInstance().load(applicationContext, getSharedPreferences("osmdroid", MODE_PRIVATE))
+        val osmdroidPrefs = getSharedPreferences("osmdroid", MODE_PRIVATE)
+        Configuration.getInstance().apply {
+            load(applicationContext, osmdroidPrefs)
+            userAgentValue = packageName
+        }
         setContentView(R.layout.activity_main)
 
         mapView = findViewById(R.id.mapView)
@@ -73,17 +77,18 @@ class MainActivity : AppCompatActivity() {
             startService(serviceIntent)
         }
         isTracking = true
-        btnToggleTracking.text = "Berhentikan Tracking"
-        btnToggleTracking.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_dark))
-        Toast.makeText(this, "Tracking Dimulai", Toast.LENGTH_SHORT).show()
+        btnToggleTracking.text = getString(R.string.btn_stop_tracking)
+        btnToggleTracking.setBackgroundColor(ContextCompat.getColor(this, R.color.button_danger))
+        Toast.makeText(this, getString(R.string.toast_tracking_started), Toast.LENGTH_SHORT).show()
     }
 
     private fun stopTrackingService() {
         val serviceIntent = Intent(this, LocationService::class.java)
         stopService(serviceIntent)
         isTracking = false
-        btnToggleTracking.text = "Mulai Tracking"
-        Toast.makeText(this, "Tracking Dihentikan", Toast.LENGTH_SHORT).show()
+        btnToggleTracking.text = getString(R.string.btn_start_tracking)
+        btnToggleTracking.setBackgroundColor(ContextCompat.getColor(this, R.color.button_primary))
+        Toast.makeText(this, getString(R.string.toast_tracking_stopped), Toast.LENGTH_SHORT).show()
     }
 
     private fun checkPermissions() {
@@ -107,7 +112,12 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         mapView.onResume()
-        registerReceiver(locationReceiver, IntentFilter("SpeedUpdateAction"), RECEIVER_NOT_EXPORTED)
+        ContextCompat.registerReceiver(
+            this,
+            locationReceiver,
+            IntentFilter("SpeedUpdateAction"),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
     }
 
     override fun onPause() {

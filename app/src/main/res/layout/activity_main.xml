@@ -10,7 +10,7 @@
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Motor Speed Tracker"
+        android:text="@string/app_title"
         android:textColor="@android:color/white"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -61,7 +61,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    text="KECEPATAN"
+                    android:text="@string/label_speed"
                     android:textColor="#A0AAB2"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -94,7 +94,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="JARAK"
+                    android:text="@string/label_distance"
                     android:textColor="#A0AAB2"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -124,7 +124,7 @@
         android:layout_width="0dp"
         android:layout_height="55dp"
         android:layout_margin="16dp"
-        android:text="Mulai Tracking"
+        android:text="@string/btn_start_tracking"
         android:textColor="@android:color/white"
         android:textSize="16sp"
         android:textStyle="bold"

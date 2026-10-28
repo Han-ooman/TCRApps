@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema biru gelap elegan -->
+    <color name="background_dark">#0D1B2A</color>
+    <color name="card_background">#1B263B</color>
+    <color name="text_muted">#A0AAB2</color>
+    <color name="button_primary">#415A77</color>
+    <color name="button_danger">#B3261E</color>
+    <color name="accent_blue">#7DF9FF</color>
+    <color name="ic_launcher_background">#0D1B2A</color>
+</resources>

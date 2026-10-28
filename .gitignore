@@ -10,6 +10,10 @@ local.properties
 *.iml
 .vscode/
 
+# Gradle
+.gradle/
+captures/
+
 # OS
 .DS_Store
 Thumbs.db

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TCRApps</string>
+    <string name="app_title">Motor Speed Tracker</string>
+    <string name="label_speed">KECEPATAN</string>
+    <string name="label_distance">JARAK</string>
+    <string name="unit_speed">km/h</string>
+    <string name="unit_distance">km</string>
+    <string name="btn_start_tracking">Mulai Tracking</string>
+    <string name="btn_stop_tracking">Berhentikan Tracking</string>
+    <string name="notif_channel_name">Location Service Channel</string>
+    <string name="notif_title">Motor Tracker Aktif</string>
+    <string name="notif_text">Merekam kecepatan dan rute perjalanan…</string>
+    <string name="toast_tracking_started">Tracking Dimulai</string>
+    <string name="toast_tracking_stopped">Tracking Dihentikan</string>
+</resources>

@@ -33,8 +33,8 @@ class LocationService : Service(), LocationListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createNotificationChannel()
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Motor Tracker Aktif")
-            .setContentText("Merekam kecepatan dan rute perjalanan...")
+            .setContentTitle(getString(R.string.notif_title))
+            .setContentText(getString(R.string.notif_text))
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .build()
 
@@ -66,10 +66,12 @@ class LocationService : Service(), LocationListener {
         }
         lastLocation = location
 
-        // Kirim *broadcast* jika ingin memperbarui UI secara real-time
-        val intent = Intent("SpeedUpdateAction")
-        intent.putExtra("speed", currentSpeed)
-        intent.putExtra("distance", currentDistance)
+        // Kirim *broadcast* ke app ini saja (lebih efisien dan aman)
+        val intent = Intent("SpeedUpdateAction").apply {
+            setPackage(packageName)
+            putExtra("speed", currentSpeed)
+            putExtra("distance", currentDistance)
+        }
         sendBroadcast(intent)
     }
 
@@ -77,8 +79,8 @@ class LocationService : Service(), LocationListener {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val serviceChannel = NotificationChannel(
                 CHANNEL_ID,
-                "Location Service Channel",
-                NotificationManager.IMPORTANCE_DEFAULT
+                getString(R.string.notif_channel_name),
+                NotificationManager.IMPORTANCE_LOW
             )
             val manager = getSystemService(NotificationManager::class.java)
             manager?.createNotificationChannel(serviceChannel)
