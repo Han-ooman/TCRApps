@@ -10,8 +10,17 @@ android {
         applicationId = "com.example.motortracker"
         minSdk = 26
         targetSdk = 36
-        versionCode = 7
-        versionName = "0.1.0-alpha06"
+        versionCode = 8
+        versionName = "0.1.0-alpha07"
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = false
+        }
     }
 
     buildTypes {
