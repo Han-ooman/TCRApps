@@ -420,7 +420,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun btnButtons() {
-        // Navigasi layar Servis / Bensin / Ganti gaya peta
+        // Navigasi layar Servis / Bensin / Peta / Setelan
         findViewById<Button>(R.id.btnMaintenance).setOnClickListener {
             startActivity(Intent(this, MaintenanceActivity::class.java))
         }
@@ -431,6 +431,9 @@ class MainActivity : AppCompatActivity() {
             MapSources.showChooser(this) { styleId ->
                 loadOpenFreeMapStyle(styleOverride = styleId)
             }
+        }
+        findViewById<Button>(R.id.btnSettings).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
 

@@ -44,5 +44,10 @@
             android:name=".FuelActivity"
             android:exported="false"
             android:theme="@style/Theme.TCRApps" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TCRApps" />
     </application>
 </manifest>

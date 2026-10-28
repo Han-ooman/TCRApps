@@ -111,4 +111,38 @@ object PrefsStore {
             .putString(KEY_MAP_API_KEY, apiKey)
             .apply()
     }
+
+    // ---- Export / Backup ----
+    fun exportAllJson(ctx: Context): String {
+        val root = JSONObject()
+        root.put("odometer_km", currentOdoKm(ctx))
+        root.put("maintenance_items", JSONArray().apply {
+            loadMaintenance(ctx).forEach {
+                put(JSONObject()
+                    .put("name", it.name)
+                    .put("intervalKm", it.intervalKm)
+                    .put("lastOdoKm", it.lastOdoKm)
+                    .put("note", it.note))
+            }
+        })
+        root.put("fuel_records", JSONArray().apply {
+            loadFuel(ctx).forEach {
+                put(JSONObject()
+                    .put("odoKm", it.odoKm)
+                    .put("liters", it.liters)
+                    .put("pricePerLiter", it.pricePerLiter)
+                    .put("dateMs", it.dateMs))
+            }
+        })
+        root.put("map_provider", mapProviderId(ctx))
+        root.put("map_api_key", mapApiKey(ctx))
+        root.put("exported_at", System.currentTimeMillis())
+        return root.toString(2)
+    }
+
+    fun clearAll(ctx: Context) {
+        prefs(ctx).edit().clear().apply()
+        // Re-init defaults
+        loadMaintenance(ctx)
+    }
 }

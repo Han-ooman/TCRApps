@@ -161,7 +161,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Baris menu Servis & Bensin & Maps -->
+    <!-- Baris menu Servis & Bensin & Peta & Pengaturan -->
     <LinearLayout
         android:id="@+id/btnRow"
         android:layout_width="0dp"
@@ -169,7 +169,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="12dp"
         android:orientation="horizontal"
-        android:weightSum="3"
+        android:weightSum="4"
         app:layout_constraintBottom_toTopOf="@id/btnToggleTracking"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -179,7 +179,7 @@
             style="@style/Widget.TCRApps.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="48dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="6dp"
             android:layout_weight="1"
             android:text="Servis"
             app:strokeColor="@color/md_sys_color_outline"
@@ -192,7 +192,7 @@
             style="@style/Widget.TCRApps.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="48dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="6dp"
             android:layout_weight="1"
             android:text="Bensin"
             app:strokeColor="@color/md_sys_color_outline"
@@ -205,10 +205,23 @@
             style="@style/Widget.TCRApps.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="48dp"
+            android:layout_marginEnd="6dp"
             android:layout_weight="1"
             android:text="Peta"
             app:strokeColor="@color/md_sys_color_outline"
             app:icon="@drawable/ic_map_24"
+            app:iconGravity="start"
+            app:iconPadding="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSettings"
+            style="@style/Widget.TCRApps.Button.Outlined"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Setelan"
+            app:strokeColor="@color/md_sys_color_outline"
+            app:icon="@drawable/ic_settings_24"
             app:iconGravity="start"
             app:iconPadding="8dp" />
     </LinearLayout>
