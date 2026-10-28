@@ -11,6 +11,8 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.IBinder
+import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 import androidx.core.app.NotificationCompat
 
 class LocationService : Service(), LocationListener {
@@ -18,6 +20,12 @@ class LocationService : Service(), LocationListener {
     private lateinit var locationManager: LocationManager
     private var lastLocation: Location? = null
     private var totalDistance: Float = 0f
+
+    // --- Sinkronisasi ke backend API ---
+    private var tripId: Int? = null
+    private lateinit var apiExecutor: java.util.concurrent.ThreadPoolExecutor
+    // Buffer titik yang gagal terkirim (mis. sinyal hilang) — dicoba ulang tiap update
+    private val pendingPoints = java.util.concurrent.ConcurrentLinkedQueue<JSONObject>()
 
     companion object {
         var currentSpeed: Float = 0f
@@ -28,6 +36,10 @@ class LocationService : Service(), LocationListener {
     override fun onCreate() {
         super.onCreate()
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        apiExecutor = java.util.concurrent.ThreadPoolExecutor(
+            1, 1, 30L, TimeUnit.SECONDS,
+            java.util.concurrent.LinkedBlockingQueue()
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -39,6 +51,21 @@ class LocationService : Service(), LocationListener {
             .build()
 
         startForeground(1, notification)
+
+        // Buat trip di backend (async, tidak memblokir service)
+        if (tripId == null) {
+            val deviceId = TrackerApi.deviceId(this)
+            apiExecutor.execute {
+                val id = TrackerApi.createTrip(deviceId)
+                if (id != null) {
+                    tripId = id
+                    updateNotification(
+                        getString(R.string.notif_title),
+                        "Trip #$id tersinkron ke server"
+                    )
+                }
+            }
+        }
 
         try {
             locationManager.requestLocationUpdates(
@@ -52,6 +79,19 @@ class LocationService : Service(), LocationListener {
         }
 
         return START_STICKY
+    }
+
+    /** Update isi notifikasi (masih id=1). */
+    private fun updateNotification(title: String, text: String) {
+        val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+            .setOnlyAlertOnce(true)
+            .build()
+        runCatching {
+            getSystemService(NotificationManager::class.java)?.notify(1, notification)
+        }
     }
 
     override fun onLocationChanged(location: Location) {
@@ -73,6 +113,27 @@ class LocationService : Service(), LocationListener {
             putExtra("distance", currentDistance)
         }
         sendBroadcast(intent)
+
+        // Kirim titik GPS ke backend (jika trip sudah dibuat)
+        val id = tripId
+        if (id != null) {
+            apiExecutor.execute {
+                // Kirm titik terlebih dulu buffer lama (offline queue)
+                while (pendingPoints.isNotEmpty()) {
+                    if (!TrackerApi.sendPointRaw(id, pendingPoints.peek()!!)) break
+                    pendingPoints.poll()
+                }
+                val point = JSONObject()
+                    .put("lat", location.latitude)
+                    .put("lon", location.longitude)
+                    .put("speedKmh", currentSpeed.toDouble())
+                    .put("accuracyM", location.accuracy.toDouble())
+                    .put("heading", if (location.hasBearing()) location.bearing.toDouble() else JSONObject.NULL)
+                if (!TrackerApi.sendPointRaw(id, point)) {
+                    pendingPoints.add(point) // simpan untuk retry
+                }
+            }
+        }
     }
 
     private fun createNotificationChannel() {
@@ -90,6 +151,17 @@ class LocationService : Service(), LocationListener {
     override fun onDestroy() {
         super.onDestroy()
         locationManager.removeUpdates(this)
+
+        // Tutup trip di backend, lalu matikan worker kirim data.
+        val id = tripId
+        if (id != null) {
+            val meters = totalDistance
+            apiExecutor.execute {
+                TrackerApi.finishTrip(id, meters)
+                tripId = null
+            }
+        }
+        apiExecutor.execute { apiExecutor.shutdown() }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
