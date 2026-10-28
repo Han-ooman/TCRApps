@@ -10,8 +10,8 @@ android {
         applicationId = "com.example.motortracker"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "0.1.0-alpha01"
     }
 
     buildTypes {
@@ -21,6 +21,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Alpha testing: pakai key debug supaya APK bisa langsung di-install,
+            // tanpa perlu keystore rilis resmi (ganti sebelum publish ke Play Store).
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
