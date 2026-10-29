@@ -324,8 +324,8 @@ class MainActivity : AppCompatActivity() {
 
             for (baseUrl in endpoints) {
                 val url = baseUrl +
-                    "%.6f,%.6f;%.6f,%.6f?overview=full&geometries=geojson&steps=false"
-                        .format(origLon, origLat, destLon, destLat)
+                    String.format(Locale.US, "%.6f,%.6f;%.6f,%.6f?overview=full&geometries=geojson&steps=false",
+                        origLon, origLat, destLon, destLat)
 
                 try {
                     val req = Request.Builder()

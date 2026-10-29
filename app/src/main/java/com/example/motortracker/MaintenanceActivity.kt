@@ -64,7 +64,7 @@ class MaintenanceActivity : AppCompatActivity() {
         items.forEach { item ->
             val row = inflater.inflate(
                 R.layout.item_maintenance, listContainer, false
-            ) as LinearLayout
+            ) as androidx.cardview.widget.CardView
 
             row.findViewById<TextView>(R.id.tvName).text = item.name
             row.findViewById<TextView>(R.id.tvInterval).text =
